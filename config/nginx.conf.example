@@ -1,0 +1,28 @@
+# 瘦身后的主配置：只保留进程 / 日志 / http 全局，站点全部放到 conf.d/*.conf。
+# 放到：/data/nginx/conf/nginx.conf
+# 启动仍用 -p /data/nginx （或你现有前缀）
+
+worker_processes auto;
+error_log  /data/nginx/logs/error.log warn;
+pid        /data/nginx/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile            on;
+    keepalive_timeout   65;
+    client_max_body_size 10m;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent"';
+    access_log /data/nginx/logs/access.log main;
+
+    # 每个 *.conf 一个独立 server（按文件名排序加载，互不影响）
+    include conf.d/*.conf;
+}

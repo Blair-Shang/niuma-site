@@ -8,9 +8,17 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-29
+
+### 新增
+
+- `config/conf.d/niuma-site.conf`：独立 `server`，反代本站 `127.0.0.1:8080`；证书路径对齐 `/data/nginx/ssl/`。
+- `config/nginx.conf.example`：主配置只 `include conf.d/*.conf;`，站点互不嵌套。
+- `config/conf.d/minihub.net.cn.conf.example`：从原 `nginx.conf` 迁出既有站点的样例。
+
 ### 修复
 
-- 去掉 `index.html` 重复 `</head>`；`src/data` 不再被根目录 `data/` 忽略导致 CI 缺产品列表。
+- 去掉 `index.html` 重复 `</head>`；根目录忽略改为 `/data/`，避免 `src/data` 进不了仓库导致 CI 缺产品列表。
 
 ## [1.0.0] - 2026-08-29
 
@@ -27,5 +35,6 @@
 - 默认只采信来自 `trusted_proxies` 的 `X-Forwarded-For`，避免伪造 IP 绕过下载冷却。
 - 生产默认监听 `127.0.0.1:8080`；去掉 Google Fonts 外链（避免第三方探测与国内不可达）。
 
-[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.0

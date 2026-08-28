@@ -69,6 +69,8 @@ copy_runtime() {
   cp "$ROOT/README.md" "$dest/README.md"
   cp "$ROOT/CHANGELOG.md" "$dest/CHANGELOG.md"
   cp "$ROOT/config/app.yaml.example" "$dest/config/app.yaml.example"
+  mkdir -p "$dest/config/conf.d"
+  cp "$ROOT/config/conf.d/niuma-site.conf" "$dest/config/conf.d/niuma-site.conf"
   cp "$ROOT/script/README.md" "$dest/script/README.md"
 }
 

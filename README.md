@@ -34,6 +34,14 @@ bash script/start.sh
 
 单进程访问：`http://127.0.0.1:8080/`（页面 + `/api`）。脚本说明见 [script/README.md](./script/README.md)。
 
+生产反代（与现有 nginx 互不干扰）：
+
+1. 备份 `/data/nginx/conf/nginx.conf`
+2. 把原 `server { minihub... }` 挪到 `conf.d/minihub.net.cn.conf`（样例 [config/conf.d/minihub.net.cn.conf.example](./config/conf.d/minihub.net.cn.conf.example)），`routes/*.conf` 不用动
+3. 主配置改成只 `include conf.d/*.conf;`（样例 [config/nginx.conf.example](./config/nginx.conf.example)）
+4. 放入 [config/conf.d/niuma-site.conf](./config/conf.d/niuma-site.conf) 和 niuma007 证书
+5. `nginx -t` 后 reload
+
 ## GitHub 打包
 
 推送 `v*` 标签（须与 `package.json` 的 `version` 一致）或手动运行 Actions **Pack and Release**。
