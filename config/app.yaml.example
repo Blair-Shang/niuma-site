@@ -1,0 +1,44 @@
+# niuma-site 运行配置（复制为 app.yaml 后按环境修改；app.yaml 勿提交）
+# 仅 CONFIG_DIR 环境变量可覆盖配置目录，默认 ./config
+
+# HTTP 监听地址（生产由本机 nginx 反代时绑回环，勿直接对公网暴露）
+http_addr: "127.0.0.1:8080"
+
+# 本地数据目录（下载统计 JSON 等）
+data_dir: ./data
+
+# 下载：hit 计次后 302；版本展示以 niuma-cloud updates 为准
+download:
+  # 累计下载元数据文件（无数据库）
+  stats_file: ./data/download-stats.json
+  # Windows Setup HTTPS 直链（填自有 CDN / 对象存储；勿绑 GitHub，产品暂未开源）
+  windows_url: ""
+  # 写入 byVersion 的标签；可与 cloud 发布版本对齐，可留空
+  windows_version: ""
+  # 同一 IP 冷却秒数内重复 hit 不重复计数
+  hit_cooldown_sec: 30
+
+# 仅这些反代 IP 才采信 X-Real-IP / X-Forwarded-For（防伪造绕过下载冷却）
+trusted_proxies:
+  - 127.0.0.1
+  - ::1
+
+# 允许的浏览器跨域来源
+cors_origins:
+  - http://localhost:5173
+  - https://niuma007.com
+  - https://www.niuma007.com
+
+# 可选：新下载/反馈类 Webhook（一般留空；反馈主路径在 cloud）
+feedback:
+  webhook_url: ""
+
+# 日志
+log:
+  # debug | info | warn | error
+  level: info
+  to_console: true
+  dir: ./logs
+  max_size_mb: 100
+  max_backups: 10
+  max_age_days: 30

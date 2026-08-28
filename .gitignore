@@ -1,0 +1,24 @@
+node_modules
+dist
+.DS_Store
+NUL
+*.local
+.vscode/*
+!.vscode/extensions.json
+.env
+.env.*.local
+pnpm-debug.log*
+data/
+logs/
+config/app.yaml
+config/app.env
+*.db
+*.db-*
+server/bin/
+run/
+output/
+*.exe
+coverage.out
+# 构建产物（保留占位 index 以便 go embed 可编译）
+server/internal/web/dist/**
+!server/internal/web/dist/index.html
