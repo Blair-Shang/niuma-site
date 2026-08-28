@@ -8,8 +8,8 @@ NUL
 .env
 .env.*.local
 pnpm-debug.log*
-data/
-logs/
+/data/
+/logs/
 config/app.yaml
 config/app.env
 *.db
