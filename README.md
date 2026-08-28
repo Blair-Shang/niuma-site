@@ -48,7 +48,7 @@ bash script/start.sh
 
 产物：
 
-- `niuma-site-<version>-linux-amd64.tar.gz`（内含同名目录、`CHANGELOG.md`、`VERSION`）
+- `niuma-site-<version>-linux-amd64.tar.gz`（解压后目录为 `niuma-site/`）
 - `niuma-site-<version>-windows-amd64.zip`
 - `SHA256SUMS.txt`（GNU `sha256sum` 文本格式）
 

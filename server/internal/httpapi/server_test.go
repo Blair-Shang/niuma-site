@@ -17,7 +17,7 @@ import (
 func TestHealthVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "download-stats.json")
 	srv := httpapi.New(config.Config{}, store.New(path), nil)
-	srv.SetVersion("1.0.1")
+	srv.SetVersion("1.0.2")
 	rec := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
 	if rec.Code != http.StatusOK {
@@ -27,7 +27,7 @@ func TestHealthVersion(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 		t.Fatal(err)
 	}
-	if body["status"] != "ok" || body["version"] != "1.0.1" {
+	if body["status"] != "ok" || body["version"] != "1.0.2" {
 		t.Fatalf("body=%v", body)
 	}
 }

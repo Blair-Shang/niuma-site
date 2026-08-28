@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-08-29
+
+### 变更
+
+- 发版归档文件名仍带版本号；解压根目录为 `niuma-site/`。
+
 ## [1.0.1] - 2026-08-29
 
 ### 新增
@@ -35,6 +41,7 @@
 - 默认只采信来自 `trusted_proxies` 的 `X-Forwarded-For`，避免伪造 IP 绕过下载冷却。
 - 生产默认监听 `127.0.0.1:8080`；去掉 Google Fonts 外链（避免第三方探测与国内不可达）。
 
-[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.0

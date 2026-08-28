@@ -20,12 +20,11 @@ fi
 VERSION="${VERSION#v}"
 
 OUT="$ROOT/output"
-LINUX_NAME="niuma-site-${VERSION}-linux-amd64"
-WIN_NAME="niuma-site-${VERSION}-windows-amd64"
-STAGE_LINUX="$OUT/stage-linux/${LINUX_NAME}"
-STAGE_WIN="$OUT/stage-windows/${WIN_NAME}"
-LINUX_TAR="$OUT/${LINUX_NAME}.tar.gz"
-WIN_ZIP="$OUT/${WIN_NAME}.zip"
+PKG_DIR="niuma-site"
+LINUX_TAR="$OUT/niuma-site-${VERSION}-linux-amd64.tar.gz"
+WIN_ZIP="$OUT/niuma-site-${VERSION}-windows-amd64.zip"
+STAGE_LINUX="$OUT/stage-linux/${PKG_DIR}"
+STAGE_WIN="$OUT/stage-windows/${PKG_DIR}"
 
 rm -rf "$OUT"
 mkdir -p "$STAGE_LINUX/run" "$STAGE_LINUX/script" "$STAGE_LINUX/config"
@@ -88,11 +87,11 @@ cp "$ROOT/script/restart.ps1" "$STAGE_WIN/script/restart.ps1"
 zip_windows() {
   local src="$OUT/stage-windows"
   if command -v zip >/dev/null 2>&1; then
-    (cd "$src" && zip -qr "$WIN_ZIP" "$WIN_NAME")
+    (cd "$src" && zip -qr "$WIN_ZIP" "$PKG_DIR")
     return
   fi
   if [[ -x /c/Windows/System32/tar.exe ]]; then
-    /c/Windows/System32/tar.exe -a -c -f "$WIN_ZIP" -C "$src" "$WIN_NAME"
+    /c/Windows/System32/tar.exe -a -c -f "$WIN_ZIP" -C "$src" "$PKG_DIR"
     return
   fi
   echo "Need zip or Windows tar.exe to create the Windows archive." >&2
@@ -100,7 +99,7 @@ zip_windows() {
 }
 
 echo "==> archive"
-tar -C "$OUT/stage-linux" -czf "$LINUX_TAR" "$LINUX_NAME"
+tar -C "$OUT/stage-linux" -czf "$LINUX_TAR" "$PKG_DIR"
 zip_windows
 node "$ROOT/.github/scripts/write-sha256.mjs" "$OUT"
 
