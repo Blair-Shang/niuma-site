@@ -10,6 +10,12 @@ export const router = createRouter({
       meta: { title: 'NiuMa — 专业开发与运维工具' },
     },
     {
+      path: '/products',
+      name: 'products',
+      component: () => import('../pages/ProductsPage.vue'),
+      meta: { title: '产品 — NiuMa' },
+    },
+    {
       path: '/products/niuma',
       name: 'product-niuma',
       component: () => import('../pages/ProductNiumaPage.vue'),
@@ -38,10 +44,7 @@ export const router = createRouter({
       redirect: '/',
     },
   ],
-  scrollBehavior(to) {
-    if (to.hash) {
-      return { el: to.hash, behavior: 'smooth' }
-    }
+  scrollBehavior() {
     return { top: 0 }
   },
 })

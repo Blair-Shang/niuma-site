@@ -24,12 +24,12 @@ jobs:
         working-directory: niuma-site
     steps:
       - name: Checkout niuma-site
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: niuma-site
 
       - name: Checkout niuma-ui
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.repository_owner }}/niuma-ui
           ref: ${{ vars.NIUMA_UI_REF || 'v1.1.9' }}
@@ -37,13 +37,13 @@ jobs:
           token: ${{ secrets.NIUMA_UI_TOKEN || github.token }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@v6
         with:
           version: 9.15.0
           run_install: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: pnpm
@@ -52,7 +52,7 @@ jobs:
             niuma-ui/pnpm-lock.yaml
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: '1.24'
           cache-dependency-path: niuma-site/server/go.sum

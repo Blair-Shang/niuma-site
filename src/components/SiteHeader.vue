@@ -6,22 +6,17 @@ const router = useRouter()
 const route = useRoute()
 
 const nav = [
-  { label: '产品', to: '/#products' },
+  { label: '产品', to: '/products' },
   { label: '下载', to: '/download' },
   { label: '反馈', to: '/feedback' },
   { label: '关于', to: '/about' },
 ] as const
 
 function go(path: string) {
-  if (path.startsWith('/#')) {
-    void router.push({ path: '/', hash: path.slice(1) })
-    return
-  }
   void router.push(path)
 }
 
 function isActive(to: string) {
-  if (to.startsWith('/#')) return route.path === '/'
   return route.path === to || route.path.startsWith(`${to}/`)
 }
 </script>

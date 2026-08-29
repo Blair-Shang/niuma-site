@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-08-29
+
+### 变更
+
+- GitHub Actions 升级到原生 Node 24 运行时（`checkout`/`setup-node`/`setup-go`/`pnpm/action-setup`/`upload-artifact`/`download-artifact`），消除 Node 20 弃用警告。
+- 主导航「产品」改为路径 `/products`，不再使用 `/#products` 锚点。
+
 ## [1.0.2] - 2026-08-29
 
 ### 变更
@@ -41,7 +48,8 @@
 - 默认只采信来自 `trusted_proxies` 的 `X-Forwarded-For`，避免伪造 IP 绕过下载冷却。
 - 生产默认监听 `127.0.0.1:8080`；去掉 Google Fonts 外链（避免第三方探测与国内不可达）。
 
-[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.0

@@ -119,7 +119,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <section id="products" class="site-section">
+    <section class="site-section">
       <div class="site-container">
         <div class="site-section__head">
           <p class="site-section__eyebrow">Products</p>
