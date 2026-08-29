@@ -7,16 +7,17 @@ export const siteConfig = {
     'NiuMa — 工作室品牌与旗舰 AI 运维桌面平台。数据库、SQL、监控与工具链一体。',
   apiBase: (import.meta.env.VITE_SITE_API_BASE || '').replace(/\/$/, ''),
   /**
-   * niuma-cloud API 基址（含 /cloud 前缀，不含 /api/v1）。
-   * 开发默认本地；生产默认 https://www.niuma007.com/cloud
+   * niuma-cloud API 基址（含 /niuma/cloud 前缀，不含 /api/v1）。
+   * 开发默认本地；生产默认 https://www.niuma007.com/niuma/cloud
    */
   cloudApiBase: (
     import.meta.env.VITE_CLOUD_API_BASE ||
-    (import.meta.env.DEV ? 'http://127.0.0.1:8090/cloud' : 'https://www.niuma007.com/cloud')
+    (import.meta.env.DEV ? 'http://127.0.0.1:8090/niuma/cloud' : 'https://www.niuma007.com/niuma/cloud')
   ).replace(/\/$/, ''),
   /**
-   * 下载展示回落（主数据源为 cloud updates/latest）。
-   * 真实 302 目标以服务端 config/app.yaml → download.windows_url 为准。
+   * 下载页版本/说明回落（主数据源为 cloud updates/latest）。
+   * 真实安装包由服务端 hit 302 到 cloud /updates/download。
+   * Windows=stable；Linux / macOS=beta。
    */
   download: {
     version: import.meta.env.VITE_DOWNLOAD_VERSION || '',

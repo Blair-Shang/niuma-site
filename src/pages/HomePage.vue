@@ -3,8 +3,9 @@ import { onMounted, ref } from 'vue'
 import { RsButton } from '@/ui'
 import { useRouter } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
+import ProductShotGallery from '../components/ProductShotGallery.vue'
 import { fetchDownloadStats } from '../api/downloads'
-import { products } from '../data/products'
+import { niumaDesktopShots, products } from '../data/products'
 import { siteConfig } from '../config/site'
 
 const router = useRouter()
@@ -71,33 +72,10 @@ onMounted(async () => {
           <span class="site-stat__label">次累计下载</span>
         </p>
 
-        <div class="site-hero__stage" aria-hidden="true">
-          <div class="site-hero__stage-grid" />
-          <div class="site-hero__stage-glow" />
-          <div class="site-hero__stage-card">
-            <div class="site-hero__stage-bar">
-              <span class="site-hero__stage-dot" />
-              <span class="site-hero__stage-dot" />
-              <span class="site-hero__stage-dot" />
-            </div>
-            <div class="site-hero__stage-body">
-              <div class="site-hero__stage-side">
-                <span class="site-hero__stage-line site-hero__stage-line--accent" />
-                <span class="site-hero__stage-line" />
-                <span class="site-hero__stage-line" />
-                <span class="site-hero__stage-line" />
-                <span class="site-hero__stage-line" />
-              </div>
-              <div class="site-hero__stage-main">
-                <span class="site-hero__stage-row" />
-                <span class="site-hero__stage-row" />
-                <span class="site-hero__stage-row" />
-                <span class="site-hero__stage-row" />
-                <span class="site-hero__stage-row" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <ProductShotGallery
+          class="site-hero__stage"
+          :shots="niumaDesktopShots"
+        />
       </div>
     </section>
 

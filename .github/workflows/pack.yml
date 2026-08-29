@@ -12,7 +12,7 @@ on:
       niuma_ui_ref:
         description: niuma-ui git ref (sibling repo)
         type: string
-        default: 'v1.1.9'
+        default: 'main'
 
 concurrency:
   group: pack-${{ github.workflow }}-${{ github.ref }}
@@ -50,7 +50,7 @@ jobs:
           if [ -n "${{ github.event.inputs.niuma_ui_ref }}" ]; then
             echo "niuma_ui_ref=${{ github.event.inputs.niuma_ui_ref }}" >> "$GITHUB_OUTPUT"
           else
-            echo "niuma_ui_ref=${{ vars.NIUMA_UI_REF || 'v1.1.9' }}" >> "$GITHUB_OUTPUT"
+            echo "niuma_ui_ref=${{ vars.NIUMA_UI_REF || 'main' }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Checkout niuma-site
@@ -112,7 +112,7 @@ jobs:
           SKIP_INSTALL: '1'
           NIUMA_SITE_VERSION: ${{ steps.meta.outputs.version }}
           VITE_SITE_API_BASE: ''
-          VITE_CLOUD_API_BASE: https://www.niuma007.com/cloud
+          VITE_CLOUD_API_BASE: /niuma/cloud
         run: bash script/pack-release.sh
 
       - name: Upload pack artifacts

@@ -7,13 +7,26 @@ http_addr: "127.0.0.1:8080"
 # 本地数据目录（下载统计 JSON 等）
 data_dir: ./data
 
-# 下载：hit 计次后 302；版本展示以 niuma-cloud updates 为准
+# 下载：hit 计次后优先 302 到 cloud 最新包入口（点击当下解析 published）
+cloud:
+  # 含 /niuma/cloud，不含 /api/v1。生产同域用相对路径。
+  # 本地无 nginx 时改为 http://127.0.0.1:8090/niuma/cloud
+  # 设为 off 或 - 则只用下面的 download.windows_url
+  api_base: "/niuma/cloud"
+  product: niuma
+  channel: stable
+  # Linux / macOS 尚未稳定，走 preview（默认 beta）
+  preview_channel: beta
+  windows_arch: x64
+  linux_arch: x64
+  macos_arch: arm64
+
 download:
   # 累计下载元数据文件（无数据库）
   stats_file: ./data/download-stats.json
-  # Windows Setup HTTPS 直链（填自有 CDN / 对象存储；勿绑 GitHub，产品暂未开源）
+  # 仅当 cloud.api_base 为 off 时使用的 HTTPS 应急直链（勿绑 GitHub）
   windows_url: ""
-  # 写入 byVersion 的标签；可与 cloud 发布版本对齐，可留空
+  # 应急直链写入 byVersion 的标签；走 cloud 时记为 latest
   windows_version: ""
   # 同一 IP 冷却秒数内重复 hit 不重复计数
   hit_cooldown_sec: 30

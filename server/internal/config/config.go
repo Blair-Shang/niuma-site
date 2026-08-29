@@ -27,7 +27,17 @@ type Config struct {
 
 	DownloadWindowsURL     string
 	DownloadWindowsVersion string
-	DownloadHitCooldown     time.Duration
+	DownloadHitCooldown    time.Duration
+
+	// CloudAPIBase 官网 hit 优先 302 的 cloud 根（含 /niuma/cloud，不含 /api/v1）。
+	// 生产同域用相对路径 /niuma/cloud；设为 off 或 - 时只用 DownloadWindowsURL。
+	CloudAPIBase        string
+	CloudProduct        string
+	CloudChannel        string
+	CloudPreviewChannel string
+	CloudWindowsArch    string
+	CloudLinuxArch      string
+	CloudMacOSArch      string
 
 	// TrustedProxies 反代 IP；仅这些来源才采信 X-Real-IP / X-Forwarded-For。
 	TrustedProxies []string
@@ -51,8 +61,18 @@ type fileConfig struct {
 		StatsFile      string `yaml:"stats_file"`
 		WindowsURL     string `yaml:"windows_url"`
 		WindowsVersion string `yaml:"windows_version"`
-		HitCooldownSec  int    `yaml:"hit_cooldown_sec"`
+		HitCooldownSec int    `yaml:"hit_cooldown_sec"`
 	} `yaml:"download"`
+
+	Cloud struct {
+		APIBase        string `yaml:"api_base"`
+		Product        string `yaml:"product"`
+		Channel        string `yaml:"channel"`
+		PreviewChannel string `yaml:"preview_channel"`
+		WindowsArch    string `yaml:"windows_arch"`
+		LinuxArch      string `yaml:"linux_arch"`
+		MacOSArch      string `yaml:"macos_arch"`
+	} `yaml:"cloud"`
 
 	CORSOrigins []string `yaml:"cors_origins"`
 
@@ -121,6 +141,13 @@ func Load() (Config, error) {
 		DownloadWindowsURL:     strings.TrimSpace(fc.Download.WindowsURL),
 		DownloadWindowsVersion: strings.TrimSpace(fc.Download.WindowsVersion),
 		DownloadHitCooldown:    time.Duration(cooldownSec) * time.Second,
+		CloudAPIBase:           normalizeCloudAPIBase(fc.Cloud.APIBase),
+		CloudProduct:           firstNonEmpty(strings.TrimSpace(fc.Cloud.Product), "niuma"),
+		CloudChannel:           firstNonEmpty(strings.TrimSpace(fc.Cloud.Channel), "stable"),
+		CloudPreviewChannel:    firstNonEmpty(strings.TrimSpace(fc.Cloud.PreviewChannel), "beta"),
+		CloudWindowsArch:       firstNonEmpty(strings.TrimSpace(fc.Cloud.WindowsArch), "x64"),
+		CloudLinuxArch:         firstNonEmpty(strings.TrimSpace(fc.Cloud.LinuxArch), "x64"),
+		CloudMacOSArch:         firstNonEmpty(strings.TrimSpace(fc.Cloud.MacOSArch), "arm64"),
 		FeedbackWebhookURL:     strings.TrimSpace(fc.Feedback.WebhookURL),
 		LogLevel:               firstNonEmpty(fc.Log.Level, "info"),
 		LogToConsole:           logToConsole,
@@ -147,6 +174,13 @@ func Load() (Config, error) {
 	if strings.TrimSpace(cfg.DownloadWindowsURL) != "" {
 		if err := ValidateHTTPSDownloadURL(cfg.DownloadWindowsURL); err != nil {
 			return Config{}, fmt.Errorf("download.windows_url: %w", err)
+		}
+	}
+	if cfg.CloudAPIBase != "" {
+		for _, plat := range []string{"windows", "linux", "macos"} {
+			if loc := cfg.CloudLatestDownloadURL(plat); loc == "" {
+				return Config{}, fmt.Errorf("cloud.api_base: invalid latest download location for %s", plat)
+			}
 		}
 	}
 
@@ -217,6 +251,14 @@ func ensureConfigFile(cfgDir string) error {
 func defaultYAML() string {
 	return `http_addr: "127.0.0.1:8080"
 data_dir: ./data
+cloud:
+  api_base: "/niuma/cloud"
+  product: niuma
+  channel: stable
+  preview_channel: beta
+  windows_arch: x64
+  linux_arch: x64
+  macos_arch: arm64
 download:
   stats_file: ./data/download-stats.json
   windows_url: ""
@@ -228,15 +270,75 @@ trusted_proxies:
 `
 }
 
-func (c Config) DownloadURL(platform string) (url, version string, ok bool) {
+// DownloadURL 返回 hit 302 目标。
+// Windows 走 stable（可回落 windows_url）；Linux / macOS 走 preview_channel（默认 beta）。
+func (c Config) DownloadURL(platform string) (target, version string, ok bool) {
 	switch strings.ToLower(platform) {
 	case "windows", "win", "win64":
+		if loc := c.CloudLatestDownloadURL("windows"); loc != "" {
+			return loc, "latest", true
+		}
 		if err := ValidateHTTPSDownloadURL(c.DownloadWindowsURL); err != nil {
 			return "", "", false
 		}
 		return c.DownloadWindowsURL, c.DownloadWindowsVersion, true
+	case "linux":
+		if loc := c.CloudLatestDownloadURL("linux"); loc != "" {
+			return loc, "latest", true
+		}
+	case "macos", "mac", "osx", "darwin":
+		if loc := c.CloudLatestDownloadURL("macos"); loc != "" {
+			return loc, "latest", true
+		}
+	}
+	return "", "", false
+}
+
+// CloudLatestDownloadURL 拼出 cloud「点击当下解析最新 published」的稳定地址。
+func (c Config) CloudLatestDownloadURL(platform string) string {
+	base := strings.TrimRight(strings.TrimSpace(c.CloudAPIBase), "/")
+	if base == "" {
+		return ""
+	}
+	channel, arch, ok := c.platformDownloadDim(platform)
+	if !ok {
+		return ""
+	}
+	product := firstNonEmpty(c.CloudProduct, "niuma")
+	q := url.Values{}
+	q.Set("product", product)
+	q.Set("channel", channel)
+	q.Set("platform", platform)
+	q.Set("arch", arch)
+	loc := base + "/api/v1/updates/download?" + q.Encode()
+	if err := ValidateDownloadLocation(loc); err != nil {
+		return ""
+	}
+	return loc
+}
+
+func (c Config) platformDownloadDim(platform string) (channel, arch string, ok bool) {
+	switch strings.ToLower(strings.TrimSpace(platform)) {
+	case "windows":
+		return firstNonEmpty(c.CloudChannel, "stable"), firstNonEmpty(c.CloudWindowsArch, "x64"), true
+	case "linux":
+		return firstNonEmpty(c.CloudPreviewChannel, "beta"), firstNonEmpty(c.CloudLinuxArch, "x64"), true
+	case "macos":
+		return firstNonEmpty(c.CloudPreviewChannel, "beta"), firstNonEmpty(c.CloudMacOSArch, "arm64"), true
 	default:
 		return "", "", false
+	}
+}
+
+func normalizeCloudAPIBase(raw string) string {
+	raw = strings.TrimSpace(raw)
+	switch strings.ToLower(raw) {
+	case "off", "-":
+		return ""
+	case "":
+		return "/niuma/cloud"
+	default:
+		return strings.TrimRight(raw, "/")
 	}
 }
 
@@ -254,6 +356,53 @@ func ValidateHTTPSDownloadURL(raw string) error {
 		return fmt.Errorf("must be https URL without credentials")
 	}
 	return nil
+}
+
+// ValidateDownloadLocation 允许：cloud 最新包相对路径、https，或本机回环 http（开发）。
+func ValidateDownloadLocation(raw string) error {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return fmt.Errorf("empty")
+	}
+	if strings.HasPrefix(raw, "/") {
+		if strings.HasPrefix(raw, "//") || strings.Contains(raw, "\\") || strings.Contains(raw, "@") {
+			return fmt.Errorf("invalid relative download path")
+		}
+		pathOnly := raw
+		if i := strings.IndexByte(raw, '?'); i >= 0 {
+			pathOnly = raw[:i]
+		}
+		if pathOnly != "/niuma/cloud/api/v1/updates/download" {
+			return fmt.Errorf("relative path must be cloud latest download")
+		}
+		return nil
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return err
+	}
+	if u.User != nil || u.Host == "" {
+		return fmt.Errorf("invalid url")
+	}
+	if !strings.HasSuffix(u.Path, "/api/v1/updates/download") {
+		return fmt.Errorf("path must end with /api/v1/updates/download")
+	}
+	if u.Scheme == "https" {
+		return nil
+	}
+	if u.Scheme == "http" && isLoopbackHost(u.Hostname()) {
+		return nil
+	}
+	return fmt.Errorf("must be https, loopback http, or /niuma/cloud/api/v1/updates/download")
+}
+
+func isLoopbackHost(host string) bool {
+	switch strings.ToLower(strings.TrimSpace(host)) {
+	case "127.0.0.1", "localhost", "localhost.", "::1":
+		return true
+	default:
+		return false
+	}
 }
 
 func getenv(key, fallback string) string {

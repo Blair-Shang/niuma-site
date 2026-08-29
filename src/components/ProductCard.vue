@@ -24,41 +24,51 @@ function open() {
     class="product-tile"
     :class="{ 'product-tile--soon': !product.to }"
   >
-    <div class="product-tile__top">
-      <div class="product-tile__identity">
-        <img
-          v-if="product.id === 'niuma-desktop'"
-          class="product-tile__icon"
-          src="/brand/app-icon.svg"
-          alt=""
-          width="36"
-          height="36"
-        />
-        <div
-          v-else
-          class="product-tile__icon product-tile__icon--placeholder"
-          aria-hidden="true"
-        />
-        <div>
-          <h3 class="product-tile__name">{{ product.name }}</h3>
-          <RsBadge :variant="statusBadgeVariant[product.status]">
-            {{ statusLabel[product.status] }}
-          </RsBadge>
+    <div v-if="product.shot" class="product-tile__shot">
+      <img
+        :src="product.shot"
+        alt=""
+        width="1024"
+        height="640"
+      />
+    </div>
+    <div class="product-tile__body">
+      <div class="product-tile__top">
+        <div class="product-tile__identity">
+          <img
+            v-if="product.id === 'niuma-desktop'"
+            class="product-tile__icon"
+            src="/brand/app-icon.svg"
+            alt=""
+            width="36"
+            height="36"
+          />
+          <div
+            v-else
+            class="product-tile__icon product-tile__icon--placeholder"
+            aria-hidden="true"
+          />
+          <div>
+            <h3 class="product-tile__name">{{ product.name }}</h3>
+            <RsBadge :variant="statusBadgeVariant[product.status]">
+              {{ statusLabel[product.status] }}
+            </RsBadge>
+          </div>
         </div>
       </div>
-    </div>
-    <p class="product-tile__desc">{{ product.tagline }}</p>
-    <div class="product-tile__footer">
-      <RsButton
-        v-if="product.to"
-        variant="secondary"
-        size="sm"
-        radius="md"
-        @click="open"
-      >
-        了解更多
-      </RsButton>
-      <span v-else class="product-tile__soon">敬请期待</span>
+      <p class="product-tile__desc">{{ product.tagline }}</p>
+      <div class="product-tile__footer">
+        <RsButton
+          v-if="product.to"
+          variant="secondary"
+          size="sm"
+          radius="md"
+          @click="open"
+        >
+          了解更多
+        </RsButton>
+        <span v-else class="product-tile__soon">敬请期待</span>
+      </div>
     </div>
   </article>
 </template>
@@ -67,14 +77,36 @@ function open() {
 .product-tile {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   min-height: 14rem;
-  padding: 1.35rem 1.4rem 1.25rem;
+  padding: 0;
+  overflow: hidden;
   border-radius: 1rem;
   border: 1px solid color-mix(in srgb, var(--rs-border) 90%, transparent);
   background:
     linear-gradient(165deg, color-mix(in srgb, #161922 92%, transparent), #0e1014);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-tile__shot {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #0b0c0f;
+}
+
+.product-tile__shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.product-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  padding: 1.35rem 1.4rem 1.25rem;
 }
 
 .product-tile:hover {

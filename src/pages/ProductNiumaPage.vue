@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { RsButton } from '@/ui'
 import { useRouter } from 'vue-router'
+import ProductShotGallery from '../components/ProductShotGallery.vue'
+import { niumaDesktopShots } from '../data/products'
 import { siteConfig } from '../config/site'
 
 const router = useRouter()
@@ -49,6 +51,11 @@ const highlights = [
         </div>
       </header>
 
+      <ProductShotGallery
+        class="product-shot"
+        :shots="niumaDesktopShots"
+      />
+
       <div class="site-pillars">
         <article
           v-for="item in highlights"
@@ -68,6 +75,10 @@ const highlights = [
 </template>
 
 <style scoped>
+.product-shot {
+  margin: 0 0 2rem;
+}
+
 .product-foot {
   margin: 2rem 0 0;
   font-size: 0.9375rem;

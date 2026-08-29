@@ -85,6 +85,9 @@ func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, stats)
 }
 
+// handleHit 记录官网营销下载次数，再 302 到安装包。
+// Windows 走 stable；Linux / macOS 走 preview_channel（默认 beta）。
+// 未配置 cloud.api_base 时 Windows 可回落到 download.windows_url。
 func (s *Server) handleHit(w http.ResponseWriter, r *http.Request) {
 	platform := strings.ToLower(r.PathValue("platform"))
 	target, version, ok := s.cfg.DownloadURL(platform)
@@ -112,6 +115,8 @@ func normalizePlatform(p string) string {
 	switch p {
 	case "win", "win64", "windows":
 		return "windows"
+	case "mac", "osx", "darwin", "macos":
+		return "macos"
 	default:
 		return p
 	}

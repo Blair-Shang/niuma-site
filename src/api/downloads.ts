@@ -1,5 +1,7 @@
 import { apiUrl, siteConfig } from '../config/site'
 
+export type DownloadPlatform = 'windows' | 'linux' | 'macos'
+
 export type DownloadStats = {
   total: number
   byPlatform?: Record<string, number>
@@ -21,16 +23,18 @@ export async function fetchDownloadStats(): Promise<DownloadStats | null> {
 }
 
 /**
- * 触发 Windows 下载：默认走同仓 Go API（记数后 302）。
- * 仅当 VITE_DOWNLOAD_USE_DIRECT=true 时直链回退（无后端预览）。
+ * 触发安装包下载：默认走同仓 Go API（记数后 302 到 cloud 最新包）。
+ * Windows 为 stable；Linux / macOS 为 beta。
+ * 仅当 VITE_DOWNLOAD_USE_DIRECT=true 且为 Windows 时直链回退（不跟随流水线新版本）。
  */
-export function startWindowsDownload(): void {
+export function startPlatformDownload(platform: DownloadPlatform): void {
   if (
+    platform === 'windows' &&
     import.meta.env.VITE_DOWNLOAD_USE_DIRECT === 'true' &&
     siteConfig.download.windowsUrl
   ) {
     window.open(siteConfig.download.windowsUrl, '_blank', 'noopener,noreferrer')
     return
   }
-  window.location.assign(apiUrl('/api/v1/downloads/windows/hit'))
+  window.location.assign(apiUrl(`/api/v1/downloads/${platform}/hit`))
 }

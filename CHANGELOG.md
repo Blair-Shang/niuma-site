@@ -8,6 +8,29 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-30
+
+### 新增
+
+- 首页、产品页与产品卡片展示桌面端真实工作台截图（运维监控、数据库），替换 CSS 占位窗。
+- 产品截图支持点击放大、1:1 原图像素，以及新标签打开原图。
+
+### 变更
+
+- Nginx 将 `/niuma/` 反代到 niuma-cloud；官网默认 Cloud API 基址为 `/niuma/cloud`。
+- 下载 hit 优先 302 到 niuma-cloud `GET /api/v1/updates/download`：点击当下解析最新 published，不再依赖手改 `download.windows_url`。
+- `config/app.yaml` 增加 `cloud.api_base`（默认 `/niuma/cloud`）；`windows_url` 仅在 `api_base: off` 时作为应急直链。
+- 下载页开放 Linux（x64）与 macOS（arm64）：走 `preview_channel`（默认 **beta**）。Windows 仍为 `stable`。无对应 published 时按钮停用。
+- 下载页展示各平台 SHA-256（来自 `updates/latest`），点击复制完整哈希。
+- 下载页导语改为对外表述，去掉渠道 / published 等内部用语。
+- Nginx：对 `/niuma/cloud/api/v1/updates/download` 按 IP 限请求，对 `/updates/files/` 限并发与带宽。
+- CI / 打包默认 checkout 同组织 `niuma-ui` 的 `main`，可用 `NIUMA_UI_REF` 钉死。npm 消费用 `niuma-ui@latest`。
+
+### 说明
+
+- 下载页版本与更新说明仍来自 `updates/latest`（展示）；真正下包走 hit → cloud latest download，避免标签页开着时下到旧包。
+- Linux / macOS 尚未稳定，官网与流水线按 beta 登记；稳定后再切到 `channel: stable`。
+
 ## [1.0.3] - 2026-08-29
 
 ### 变更
@@ -48,7 +71,8 @@
 - 默认只采信来自 `trusted_proxies` 的 `X-Forwarded-For`，避免伪造 IP 绕过下载冷却。
 - 生产默认监听 `127.0.0.1:8080`；去掉 Google Fonts 外链（避免第三方探测与国内不可达）。
 
-[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.1.0
 [1.0.3]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.1

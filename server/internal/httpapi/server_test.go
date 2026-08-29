@@ -85,6 +85,62 @@ func TestSecurityHeaders(t *testing.T) {
 	}
 }
 
+func TestHitPrefersCloudLatestDownload(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "download-stats.json")
+	cfg := config.Config{
+		CloudAPIBase:           "/niuma/cloud",
+		CloudProduct:           "niuma",
+		CloudChannel:           "stable",
+		CloudPreviewChannel:    "beta",
+		CloudWindowsArch:       "x64",
+		CloudLinuxArch:         "x64",
+		CloudMacOSArch:         "arm64",
+		DownloadWindowsURL:     "https://example.com/old-setup.exe",
+		DownloadWindowsVersion: "0.1.0",
+		DownloadHitCooldown:    time.Second,
+	}
+	srv := httpapi.New(cfg, store.New(path), nil)
+	rec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/downloads/windows/hit", nil))
+	if rec.Code != http.StatusFound {
+		t.Fatalf("status=%d", rec.Code)
+	}
+	want := "/niuma/cloud/api/v1/updates/download?arch=x64&channel=stable&platform=windows&product=niuma"
+	if loc := rec.Header().Get("Location"); loc != want {
+		t.Fatalf("location=%s", loc)
+	}
+
+	linuxRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(linuxRec, httptest.NewRequest(http.MethodGet, "/api/v1/downloads/linux/hit", nil))
+	if linuxRec.Code != http.StatusFound {
+		t.Fatalf("linux status=%d", linuxRec.Code)
+	}
+	wantLinux := "/niuma/cloud/api/v1/updates/download?arch=x64&channel=beta&platform=linux&product=niuma"
+	if loc := linuxRec.Header().Get("Location"); loc != wantLinux {
+		t.Fatalf("linux location=%s", loc)
+	}
+
+	macRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(macRec, httptest.NewRequest(http.MethodGet, "/api/v1/downloads/macos/hit", nil))
+	if macRec.Code != http.StatusFound {
+		t.Fatalf("macos status=%d", macRec.Code)
+	}
+	wantMac := "/niuma/cloud/api/v1/updates/download?arch=arm64&channel=beta&platform=macos&product=niuma"
+	if loc := macRec.Header().Get("Location"); loc != wantMac {
+		t.Fatalf("macos location=%s", loc)
+	}
+
+	srec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(srec, httptest.NewRequest(http.MethodGet, "/api/v1/downloads/stats", nil))
+	var body map[string]any
+	if err := json.Unmarshal(srec.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body["total"].(float64) != 3 {
+		t.Fatalf("body=%v", body)
+	}
+}
+
 func TestHitRejectsNonHTTPSDownloadURL(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "download-stats.json")
 	srv := httpapi.New(config.Config{

@@ -28,7 +28,7 @@ function cloudURL(path: string): string {
   return `${base}${p}`
 }
 
-/** 拉取 cloud 最新 published；无发布或失败返回 null（UI 回落 env）。 */
+/** 拉取 cloud 最新 published 元数据（展示版本与说明）。安装包请走官网 hit，勿用本结果的 downloadUrl 直接跳转。 */
 export async function fetchLatestRelease(
   params: FetchLatestParams = {},
 ): Promise<UpdateRelease | null> {

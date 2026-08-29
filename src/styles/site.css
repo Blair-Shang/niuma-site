@@ -148,134 +148,48 @@ body {
   animation: site-rise 0.9s var(--site-ease) 0.2s both;
 }
 
-.site-hero__stage {
-  position: relative;
-  margin: clamp(2.5rem, 6vw, 3.75rem) auto 0;
-  width: min(100%, 56rem);
-  aspect-ratio: 16 / 9;
+.site-shot {
+  margin: 0;
   border-radius: 1rem;
   overflow: hidden;
   border: 1px solid var(--site-hairline);
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--rs-surface) 90%, #111), #0e1014);
+  background: #0e1014;
   box-shadow:
     0 0 0 1px color-mix(in srgb, #fff 4%, transparent) inset,
     0 40px 80px color-mix(in srgb, #000 55%, transparent);
+}
+
+.site-shot__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.site-shot__caption {
+  margin: 0;
+  padding: 0.7rem 1rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--rs-muted);
+  text-align: left;
+  border-top: 1px solid var(--site-hairline);
+}
+
+.site-shot-gallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .site-shot-gallery {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.site-hero__stage {
+  margin: clamp(2.5rem, 6vw, 3.75rem) auto 0;
+  width: 100%;
   animation: site-rise 1s var(--site-ease) 0.22s both;
-}
-
-.site-hero__stage-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(color-mix(in srgb, #fff 5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, #fff 5%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, #000 20%, transparent 75%);
-  opacity: 0.55;
-}
-
-.site-hero__stage-glow {
-  position: absolute;
-  width: 55%;
-  height: 55%;
-  left: 22%;
-  top: 10%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--site-aurora-a) 35%, transparent), transparent 70%);
-  filter: blur(8px);
-  animation: site-pulse 6s ease-in-out infinite;
-}
-
-.site-hero__stage-card {
-  position: absolute;
-  inset: 12% 10% 14%;
-  border-radius: 0.75rem;
-  border: 1px solid var(--site-hairline);
-  background: color-mix(in srgb, #12141a 92%, transparent);
-  backdrop-filter: blur(8px);
-  padding: 1rem 1.1rem;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 0.85rem;
-}
-
-.site-hero__stage-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.site-hero__stage-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--rs-muted) 55%, transparent);
-}
-
-.site-hero__stage-dot:nth-child(1) { background: #ff5f57; }
-.site-hero__stage-dot:nth-child(2) { background: #febc2e; }
-.site-hero__stage-dot:nth-child(3) { background: #28c840; }
-
-.site-hero__stage-body {
-  display: grid;
-  grid-template-columns: 9.5rem 1fr;
-  gap: 0.75rem;
-  min-height: 0;
-}
-
-.site-hero__stage-side,
-.site-hero__stage-main {
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, #0b0c0f 70%, transparent);
-  border: 1px solid color-mix(in srgb, #fff 5%, transparent);
-}
-
-.site-hero__stage-side {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  padding: 0.65rem;
-}
-
-.site-hero__stage-line {
-  height: 0.45rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, #fff 10%, transparent);
-}
-
-.site-hero__stage-line--accent {
-  width: 72%;
-  background: linear-gradient(90deg, var(--site-aurora-a), var(--site-aurora-d));
-  opacity: 0.85;
-}
-
-.site-hero__stage-main {
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.site-hero__stage-row {
-  height: 0.55rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, #fff 8%, transparent);
-}
-
-.site-hero__stage-row:nth-child(2) { width: 88%; }
-.site-hero__stage-row:nth-child(3) { width: 64%; }
-.site-hero__stage-row:nth-child(4) {
-  width: 76%;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--site-aurora-b) 55%, transparent), transparent);
-}
-
-@media (max-width: 720px) {
-  .site-hero__stage-body {
-    grid-template-columns: 1fr;
-  }
-  .site-hero__stage-side {
-    display: none;
-  }
 }
 
 /* ── Sections ── */
@@ -447,18 +361,6 @@ body {
   }
 }
 
-@keyframes site-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.06);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -470,8 +372,7 @@ body {
   .site-hero__lead,
   .site-hero__actions,
   .site-hero__meta,
-  .site-hero__stage,
-  .site-hero__stage-glow {
+  .site-hero__stage {
     animation: none !important;
   }
 }
