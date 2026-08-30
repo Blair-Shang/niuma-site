@@ -1,5 +1,7 @@
 /* NiuMa 官网 — 对齐专业开发者工具站的版式密度与层级。
- * Tailwind 由 niuma-ui/styles.css 透传，不要在此再 @import。 */
+ * 本文件自己 @import tailwindcss，让扫描根在官网 src；token 仍走 niuma-ui/styles.css。 */
+@import 'tailwindcss';
+
 
 :root {
   --site-max: 72rem;

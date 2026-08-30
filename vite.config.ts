@@ -57,6 +57,6 @@ export default defineConfig({
     outDir: 'server/internal/web/dist',
     emptyOutDir: true,
     target: 'es2022',
-    cssCodeSplit: true,
+    cssCodeSplit: false,
   },
 })

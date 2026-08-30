@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-08-30
+
+### 修复
+
+- 官网 CSS 重新 `@import 'tailwindcss'`，让扫描根在本仓库；打包关闭 `cssCodeSplit`，组件样式与 token 打进同一份 CSS。依赖 `niuma-ui` 1.2.3 起把旁路组件 CSS 与 `@source` 一并修好。
+
 ## [1.1.3] - 2026-08-30
 
 ### 变更
