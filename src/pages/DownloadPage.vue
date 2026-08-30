@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RsBadge, RsButton } from '@/ui'
 import { fetchDownloadStats, startPlatformDownload, type DownloadPlatform } from '../api/downloads'
-import { fetchLatestRelease, type UpdateRelease } from '../api/updates'
+import { fetchLatestRelease, fetchReleaseHistory, type UpdateRelease } from '../api/updates'
 import { siteConfig } from '../config/site'
 
 type PlatformCard = {
@@ -45,10 +45,9 @@ const total = ref<number | null>(null)
 const releases = ref<Partial<Record<DownloadPlatform, UpdateRelease | null>>>({})
 const loadingRelease = ref(true)
 
-const notesRelease = computed(() => releases.value.windows || null)
+const notesHistory = ref<UpdateRelease[]>([])
 
-const notesTitle = computed(() => notesRelease.value?.title || '')
-const notesBody = computed(() => (notesRelease.value?.notesMd || '').trim())
+const notesRelease = computed(() => notesHistory.value[0] || releases.value.windows || null)
 const copiedSha = ref('')
 
 function sha256Of(id: DownloadPlatform): string {
@@ -86,17 +85,14 @@ function hasPackage(id: DownloadPlatform): boolean {
 }
 
 onMounted(async () => {
-  const [stats, ...latest] = await Promise.all([
-    fetchDownloadStats(),
-    ...cards.map((c) =>
-      fetchLatestRelease({ platform: c.id, arch: c.arch, channel: c.channel }),
-    ),
-  ])
-  if (stats && stats.total >= 0) total.value = stats.total
+  const statsP = fetchDownloadStats()
+  const rows = await Promise.all(
+    cards.map(async (c) => [c.id, await fetchLatestRelease({ platform: c.id, arch: c.arch, channel: c.channel })] as const),
+  )
   const next: Partial<Record<DownloadPlatform, UpdateRelease | null>> = {}
-  cards.forEach((c, i) => {
-    next[c.id] = latest[i] ?? null
-  })
+  for (const [id, rel] of rows) next[id] = rel
+  const stats = await statsP
+  if (stats && stats.total >= 0) total.value = stats.total
   releases.value = next
   loadingRelease.value = false
 })

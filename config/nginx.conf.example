@@ -24,7 +24,7 @@ http {
     access_log /data/nginx/logs/access.log main;
 
     # 下载入口限请求；安装包限并发（location 见 conf.d/niuma-site.conf）
-    limit_req_zone  $binary_remote_addr zone=niuma_dl_latest:10m rate=8r/s;
+    limit_req_zone  $binary_remote_addr zone=niuma_dl_latest:10m rate=60r/s;
     limit_conn_zone $binary_remote_addr zone=niuma_dl_conn:10m;
 
     # 每个 *.conf 一个独立 server（按文件名排序加载，互不影响）
