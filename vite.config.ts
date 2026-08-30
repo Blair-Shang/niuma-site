@@ -24,15 +24,13 @@ const niumaUiRoot = resolveNiumaUiRoot()
 const niumaUiSrc = resolve(niumaUiRoot, 'src')
 const niumaUiDist = resolve(niumaUiRoot, 'dist/index.js')
 
-/** 本机 dev 走兄弟仓源码 HMR；生产构建优先 dist。 */
+/** 本机 dev 走兄弟仓源码 HMR；生产构建优先 dist。
+ * 不要把 styles.css 指到 src：源码含 @import 'tailwindcss'，
+ * npm 发布包的 dist/styles.css 已去掉 Tailwind，两边观感会对不齐。 */
 function niumaUiAliases(command: string) {
   if (!existsSync(niumaUiSrc)) return []
   if (command !== 'serve' && existsSync(niumaUiDist)) return []
   return [
-    {
-      find: '@niuma/ui/styles.css',
-      replacement: resolve(niumaUiSrc, 'styles.css'),
-    },
     {
       find: /^@niuma\/ui$/,
       replacement: resolve(niumaUiSrc, 'index.ts'),

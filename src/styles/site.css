@@ -1,3 +1,9 @@
+/* Tailwind Preflight：盒模型 / 标题 / 按钮重置。
+ * 本机 dev 若误把 @niuma/ui 指到源码 styles.css，也会带上同一套 reset；
+ * 流水线用的 npm 包 styles.css 已去掉 @import 'tailwindcss'，必须由官网自己引入，
+ * 否则线上会退回浏览器默认盒模型和标题字号，看起来像「样式缺了」。 */
+@import 'tailwindcss';
+
 /* NiuMa 官网 — 对齐专业开发者工具站的版式密度与层级 */
 
 :root {

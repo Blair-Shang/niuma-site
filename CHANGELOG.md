@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-08-30
+
+### 修复
+
+- 官网自行 `@import 'tailwindcss'`（Preflight），不再依赖本机 `niuma-ui` 源码样式。流水线用的 npm `styles.css` 不含 Tailwind，线上盒模型 / 标题 / 按钮不再和 `pnpm dev` 对不齐。
+
 ## [1.1.1] - 2026-08-30
 
 ### 变更
