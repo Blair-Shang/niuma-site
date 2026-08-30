@@ -13,7 +13,7 @@ pnpm dev:server   # :8080 API
 pnpm dev          # :5173 前端，/api 代理到 8080
 ```
 
-需要同级 `../niuma-ui`。前端环境变量见 `.env.example`。
+本机开发需要同级 `../niuma-ui`（`package.json` 为 `link:`）。前端环境变量见 `.env.example`。
 
 下载链路：页面用 cloud `updates/latest` 展示版本说明；点击走本站 `/api/v1/downloads/{platform}/hit`（计次）再 302 到 cloud `/api/v1/updates/download`。Windows 为 `stable`，Linux / macOS 为 `beta`。生产同域把 `cloud.api_base` 保持为 `/niuma/cloud` 即可。
 
@@ -56,4 +56,4 @@ bash script/start.sh
 
 Release 正文从 `CHANGELOG.md` 对应 `## [x.y.z]` 段生成；tag、`package.json` 的 `version` 与 changelog 版本号必须一致。发版前把 `[Unreleased]` 条目迁入新版本段。
 
-CI 会 checkout 同组织的 `niuma-ui` 作为兄弟目录（`link:../niuma-ui`），默认 `main`。若 `niuma-ui` 为私有仓库，配置 secret `NIUMA_UI_TOKEN`；要钉死某版用 repository variable `NIUMA_UI_REF`（如 `v1.1.11`）。npm 包跟 `niuma-ui@latest`，没有 GitHub 标签 `latest`。
+CI / 打包从 npm 安装 `niuma-ui@latest`（可用变量 `NIUMA_UI_VERSION` 钉死如 `1.2.0`，或手动 Pack 时填写 `niuma_ui_version`）。不 checkout 兄弟 Git 仓。没有 GitHub 标签 `latest`。

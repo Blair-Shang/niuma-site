@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-30
+
+### 变更
+
+- 从 `@niuma/ui` 包入口具名导入组件，不再依赖 `@niuma-ui-src` 源码别名。
+- CI / 打包从 npm 安装 `niuma-ui@latest`（可用 `NIUMA_UI_VERSION` 钉死），不再 checkout 兄弟 Git 仓。本机仍用 `link:../niuma-ui` 联调。
+
 ## [1.1.0] - 2026-08-30
 
 ### 新增
@@ -71,7 +78,8 @@
 - 默认只采信来自 `trusted_proxies` 的 `X-Forwarded-For`，避免伪造 IP 绕过下载冷却。
 - 生产默认监听 `127.0.0.1:8080`；去掉 Google Fonts 外链（避免第三方探测与国内不可达）。
 
-[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Blair-Shang/niuma-site/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.1.1
 [1.1.0]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.1.0
 [1.0.3]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Blair-Shang/niuma-site/releases/tag/v1.0.2

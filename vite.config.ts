@@ -1,24 +1,50 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
-import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, resolve } from 'node:path'
 
-const niumaUiRoot = resolve(__dirname, '../niuma-ui')
+const require = createRequire(import.meta.url)
+
+/** 本机有同级源码则联调；CI / 打包从 npm 的 niuma-ui 解析。 */
+function resolveNiumaUiRoot(): string {
+  const sibling = resolve(__dirname, '../niuma-ui')
+  if (existsSync(resolve(sibling, 'package.json'))) {
+    return sibling
+  }
+  try {
+    return dirname(require.resolve('@niuma/ui/package.json'))
+  } catch {
+    return dirname(require.resolve('niuma-ui/package.json'))
+  }
+}
+
+const niumaUiRoot = resolveNiumaUiRoot()
 const niumaUiSrc = resolve(niumaUiRoot, 'src')
+const niumaUiDist = resolve(niumaUiRoot, 'dist/index.js')
 
-export default defineConfig({
+/** 本机 dev 走兄弟仓源码 HMR；生产构建优先 dist。 */
+function niumaUiAliases(command: string) {
+  if (!existsSync(niumaUiSrc)) return []
+  if (command !== 'serve' && existsSync(niumaUiDist)) return []
+  return [
+    {
+      find: '@niuma/ui/styles.css',
+      replacement: resolve(niumaUiSrc, 'styles.css'),
+    },
+    {
+      find: /^@niuma\/ui$/,
+      replacement: resolve(niumaUiSrc, 'index.ts'),
+    },
+  ]
+}
+
+export default defineConfig(({ command }) => ({
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: [
-      {
-        find: '@niuma/ui/styles.css',
-        replacement: resolve(niumaUiSrc, 'styles.css'),
-      },
-      // 组件按需从源码目录引用（见 src/ui.ts），不要指向整包 index.ts
-      {
-        find: '@niuma-ui-src',
-        replacement: niumaUiSrc,
-      },
+      ...niumaUiAliases(command),
       {
         find: '@',
         replacement: resolve(__dirname, 'src'),
@@ -48,4 +74,4 @@ export default defineConfig({
     target: 'es2022',
     cssCodeSplit: true,
   },
-})
+}))

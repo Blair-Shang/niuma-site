@@ -18,8 +18,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@niuma-ui-src/*": ["../niuma-ui/src/*"]
+      "@/*": ["./src/*"]
     },
     "baseUrl": "."
   },
