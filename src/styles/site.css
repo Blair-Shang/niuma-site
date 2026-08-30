@@ -2,6 +2,12 @@
  * 本文件自己 @import tailwindcss，让扫描根在官网 src；token 仍走 niuma-ui/styles.css。 */
 @import 'tailwindcss';
 
+/* 不依赖 Tailwind @layer：线上 / dev 只要一边没打出 Preflight，盒模型就会把整站宽高和按钮撑歪 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 :root {
   --site-max: 72rem;
@@ -25,6 +31,7 @@ html {
 html,
 body,
 #app {
+  width: 100%;
   min-height: 100%;
 }
 
