@@ -85,9 +85,9 @@ func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, stats)
 }
 
-// handleHit 记录官网营销下载次数，再 302 到安装包。
+// handleHit 302 到安装包。跳 cloud /updates/download 时由 cloud 记全局次数（含桌面自动更新）。
+// 仅直链回落（windows_url）才写本站 JSON，避免和 cloud 各记一本。
 // Windows 走 stable；Linux / macOS 走 preview_channel（默认 beta）。
-// 未配置 cloud.api_base 时 Windows 可回落到 download.windows_url。
 func (s *Server) handleHit(w http.ResponseWriter, r *http.Request) {
 	platform := strings.ToLower(r.PathValue("platform"))
 	target, version, ok := s.cfg.DownloadURL(platform)
@@ -99,7 +99,8 @@ func (s *Server) handleHit(w http.ResponseWriter, r *http.Request) {
 	ip := s.clientIP(r)
 	key := platform + "|" + ip
 	counted := s.hits.Allow(key)
-	if counted {
+	// 跳到 cloud /updates/download 时由 cloud 记全局次数，避免和桌面自动更新各记一本。
+	if counted && !isCloudLatestDownload(target) {
 		p := normalizePlatform(platform)
 		if err := s.store.RecordDownload(r.Context(), p, version); err != nil {
 			s.log.Error("record download failed", zap.Error(err), zap.String("platform", p))
@@ -109,6 +110,10 @@ func (s *Server) handleHit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, target, http.StatusFound)
+}
+
+func isCloudLatestDownload(target string) bool {
+	return strings.Contains(target, "/api/v1/updates/download")
 }
 
 func normalizePlatform(p string) string {

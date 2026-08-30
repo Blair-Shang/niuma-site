@@ -68,6 +68,39 @@ func TestHitRedirectAndStats(t *testing.T) {
 	}
 }
 
+func TestHitCloudDownloadSkipsLocalStats(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "download-stats.json")
+	cfg := config.Config{
+		CloudAPIBase:     "/niuma/cloud",
+		CloudProduct:     "niuma",
+		CloudChannel:     "stable",
+		CloudWindowsArch: "x64",
+	}
+	srv := httpapi.New(cfg, store.New(path), nil)
+	h := srv.Handler()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/downloads/windows/hit", nil)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusFound {
+		t.Fatalf("status=%d", rec.Code)
+	}
+	if loc := rec.Header().Get("Location"); !strings.Contains(loc, "/api/v1/updates/download") {
+		t.Fatalf("location=%s", loc)
+	}
+
+	sreq := httptest.NewRequest(http.MethodGet, "/api/v1/downloads/stats", nil)
+	srec := httptest.NewRecorder()
+	h.ServeHTTP(srec, sreq)
+	var body map[string]any
+	if err := json.Unmarshal(srec.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body["total"].(float64) != 0 {
+		t.Fatalf("cloud download must not increment local stats: %v", body)
+	}
+}
+
 func TestSecurityHeaders(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "download-stats.json")
 	srv := httpapi.New(config.Config{}, store.New(path), nil)
@@ -136,8 +169,8 @@ func TestHitPrefersCloudLatestDownload(t *testing.T) {
 	if err := json.Unmarshal(srec.Body.Bytes(), &body); err != nil {
 		t.Fatal(err)
 	}
-	if body["total"].(float64) != 3 {
-		t.Fatalf("body=%v", body)
+	if body["total"].(float64) != 0 {
+		t.Fatalf("cloud download must not increment local stats: %v", body)
 	}
 }
 

@@ -117,7 +117,7 @@ onMounted(async () => {
         </p>
         <p v-if="total !== null" class="site-stat" style="margin-top: 1.1rem">
           <span class="site-stat__value">{{ total.toLocaleString('zh-CN') }}</span>
-          <span class="site-stat__label">次累计下载</span>
+          <span class="site-stat__label">次累计下载（含应用内更新）</span>
         </p>
       </header>
 
