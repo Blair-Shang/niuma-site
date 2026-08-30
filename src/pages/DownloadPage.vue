@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { RsBadge, RsButton } from '@/ui'
 import { fetchDownloadStats, startPlatformDownload, type DownloadPlatform } from '../api/downloads'
 import { fetchLatestRelease, fetchReleaseHistory, type UpdateRelease } from '../api/updates'
@@ -46,8 +46,6 @@ const releases = ref<Partial<Record<DownloadPlatform, UpdateRelease | null>>>({}
 const loadingRelease = ref(true)
 
 const notesHistory = ref<UpdateRelease[]>([])
-
-const notesRelease = computed(() => notesHistory.value[0] || releases.value.windows || null)
 const copiedSha = ref('')
 
 function sha256Of(id: DownloadPlatform): string {
@@ -91,9 +89,19 @@ onMounted(async () => {
   )
   const next: Partial<Record<DownloadPlatform, UpdateRelease | null>> = {}
   for (const [id, rel] of rows) next[id] = rel
-  const stats = await statsP
+  const [stats, history] = await Promise.all([
+    statsP,
+    fetchReleaseHistory({ platform: 'windows', arch: 'x64', channel: 'stable', limit: 10 }),
+  ])
   if (stats && stats.total >= 0) total.value = stats.total
   releases.value = next
+  if (history.length > 0) {
+    notesHistory.value = history
+  } else if (next.windows) {
+    notesHistory.value = [next.windows]
+  } else {
+    notesHistory.value = []
+  }
   loadingRelease.value = false
 })
 </script>
@@ -149,10 +157,15 @@ onMounted(async () => {
       <section class="download-notes" aria-labelledby="download-notes-title">
         <h2 id="download-notes-title">更新说明</h2>
         <p v-if="loadingRelease" class="download-notes__muted">加载中…</p>
-        <template v-else-if="notesRelease">
-          <p v-if="notesTitle" class="download-notes__title">{{ notesTitle }}</p>
-          <pre v-if="notesBody" class="download-notes__body">{{ notesBody }}</pre>
-          <p v-else class="download-notes__muted">本版本暂无详细说明。</p>
+        <template v-else-if="notesHistory.length">
+          <article v-for="rel in notesHistory" :key="rel.version" class="download-notes__ver">
+            <p class="download-notes__title">
+              <span class="download-notes__ver-id">v{{ rel.version }}</span>
+              <template v-if="rel.title"> {{ rel.title }}</template>
+            </p>
+            <pre v-if="rel.notesMd?.trim()" class="download-notes__body">{{ rel.notesMd.trim() }}</pre>
+            <p v-else class="download-notes__muted">本版本暂无详细说明。</p>
+          </article>
         </template>
         <p v-else class="download-notes__muted">
           暂无更新说明。
@@ -254,9 +267,19 @@ onMounted(async () => {
   letter-spacing: -0.03em;
 }
 
+.download-notes__ver {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .download-notes__title {
   margin: 0;
   font-weight: 600;
+}
+
+.download-notes__ver-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 650;
 }
 
 .download-notes__body {
