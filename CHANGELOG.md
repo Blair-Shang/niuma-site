@@ -10,6 +10,12 @@
 
 ## [1.1.2] - 2026-08-30
 
+### 变更
+
+- `src/ui.ts` 从 `@niuma/ui` 具名导入；`niumaUiHost` 让本机 `pnpm dev` 联调源码，打包走 npm `dist`。Tailwind 只通过 `niuma-ui/styles.css` 透传，官网 CSS 不再自己 `@import`。
+
+## [1.1.2] - 2026-08-30
+
 ### 修复
 
 - 官网自行 `@import 'tailwindcss'`（Preflight），不再依赖本机 `niuma-ui` 源码样式。流水线用的 npm `styles.css` 不含 Tailwind，线上盒模型 / 标题 / 按钮不再和 `pnpm dev` 对不齐。

@@ -1,13 +1,14 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
+import { niumaUiHost } from '@niuma/ui/vite-plugins/niuma-ui-host'
 import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 
 const require = createRequire(import.meta.url)
 
-/** 本机有同级源码则联调；CI / 打包从 npm 的 niuma-ui 解析。 */
+/** 定位 @niuma/ui 包根，仅给 dev server 放行读取（link 到兄弟仓时需要）。 */
 function resolveNiumaUiRoot(): string {
   const sibling = resolve(__dirname, '../niuma-ui')
   if (existsSync(resolve(sibling, 'package.json'))) {
@@ -21,28 +22,14 @@ function resolveNiumaUiRoot(): string {
 }
 
 const niumaUiRoot = resolveNiumaUiRoot()
-const niumaUiSrc = resolve(niumaUiRoot, 'src')
-const niumaUiDist = resolve(niumaUiRoot, 'dist/index.js')
 
-/** 本机 dev 走兄弟仓源码 HMR；生产构建优先 dist。
- * 不要把 styles.css 指到 src：源码含 @import 'tailwindcss'，
- * npm 发布包的 dist/styles.css 已去掉 Tailwind，两边观感会对不齐。 */
-function niumaUiAliases(command: string) {
-  if (!existsSync(niumaUiSrc)) return []
-  if (command !== 'serve' && existsSync(niumaUiDist)) return []
-  return [
-    {
-      find: /^@niuma\/ui$/,
-      replacement: resolve(niumaUiSrc, 'index.ts'),
-    },
-  ]
-}
-
-export default defineConfig(({ command }) => ({
-  plugins: [vue(), tailwindcss()],
+/**
+ * niumaUiHost：dev 联调用到的组件源码；build / CI 走 npm dist。
+ */
+export default defineConfig({
+  plugins: [vue(), tailwindcss(), ...niumaUiHost()],
   resolve: {
     alias: [
-      ...niumaUiAliases(command),
       {
         find: '@',
         replacement: resolve(__dirname, 'src'),
@@ -72,4 +59,4 @@ export default defineConfig(({ command }) => ({
     target: 'es2022',
     cssCodeSplit: true,
   },
-}))
+})
