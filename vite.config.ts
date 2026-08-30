@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { niumaUiHost } from '@niuma/ui/vite-plugins/niuma-ui-host'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 
@@ -24,10 +24,20 @@ function resolveNiumaUiRoot(): string {
 const niumaUiRoot = resolveNiumaUiRoot()
 
 /**
- * niumaUiHost：dev 联调用到的组件源码；build / CI 走 npm dist。
+ * niumaUiHost：只服务 pnpm dev（源码 HMR）。vite build 走包主入口。
  */
 export default defineConfig({
-  plugins: [vue(), tailwindcss(), ...niumaUiHost()],
+  plugins: [
+    vue(),
+    tailwindcss(),
+    ...niumaUiHost(),
+    {
+      name: 'keep-dist-gitkeep',
+      closeBundle() {
+        writeFileSync(resolve(__dirname, 'server/internal/web/dist/.gitkeep'), '')
+      },
+    },
+  ],
   resolve: {
     alias: [
       {

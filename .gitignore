@@ -19,6 +19,6 @@ run/
 output/
 *.exe
 coverage.out
-# 构建产物（保留占位 index 以便 go embed 可编译）
+# 前端构建产物，不入库。留 .gitkeep 以便 go embed 在未 pnpm build 时也能编译。
 server/internal/web/dist/**
-!server/internal/web/dist/index.html
+!server/internal/web/dist/.gitkeep
