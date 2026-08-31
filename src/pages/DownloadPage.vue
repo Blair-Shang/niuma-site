@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { RsBadge, RsButton } from '@/ui'
+import FaqList from '../components/FaqList.vue'
+import { faqItemsByCategory } from '../data/faq'
 import { fetchDownloadStats, startPlatformDownload, type DownloadPlatform } from '../api/downloads'
-import { fetchLatestRelease, fetchReleaseHistory, type UpdateRelease } from '../api/updates'
+import {
+  fetchLatestRelease,
+  fetchPublishedRelease,
+  fetchReleaseHistory,
+  type UpdateRelease,
+} from '../api/updates'
 import { siteConfig } from '../config/site'
 
 type PlatformCard = {
@@ -41,12 +49,61 @@ const cards: PlatformCard[] = [
   },
 ]
 
+const installFaq = faqItemsByCategory('install').slice(0, 3)
+const router = useRouter()
+
 const total = ref<number | null>(null)
 const releases = ref<Partial<Record<DownloadPlatform, UpdateRelease | null>>>({})
 const loadingRelease = ref(true)
 
 const notesHistory = ref<UpdateRelease[]>([])
+const selectedVersion = ref('')
+const notesCache = ref<Record<string, UpdateRelease>>({})
+const notesLoading = ref(false)
 const copiedSha = ref('')
+
+const selectedCard = computed(() => {
+  return (
+    notesHistory.value.find((rel) => rel.version === selectedVersion.value) ||
+    notesHistory.value[0] ||
+    null
+  )
+})
+
+const selectedRelease = computed(() => {
+  const ver = selectedCard.value?.version
+  if (!ver) return null
+  return notesCache.value[ver] || selectedCard.value
+})
+
+async function loadSelectedNotes(version: string) {
+  if (!version || notesCache.value[version]?.notesMd) return
+  notesLoading.value = true
+  const full = await fetchPublishedRelease({
+    platform: 'windows',
+    arch: 'x64',
+    channel: 'stable',
+    version,
+  })
+  if (full) {
+    notesCache.value = { ...notesCache.value, [version]: full }
+  }
+  notesLoading.value = false
+}
+
+watch(selectedVersion, (version) => {
+  if (version) void loadSelectedNotes(version)
+})
+
+function formatReleaseDate(iso?: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 function sha256Of(id: DownloadPlatform): string {
   return (releases.value[id]?.sha256 || '').trim().toLowerCase()
@@ -91,7 +148,7 @@ onMounted(async () => {
   for (const [id, rel] of rows) next[id] = rel
   const [stats, history] = await Promise.all([
     statsP,
-    fetchReleaseHistory({ platform: 'windows', arch: 'x64', channel: 'stable', limit: 10 }),
+    fetchReleaseHistory({ platform: 'windows', arch: 'x64', channel: 'stable', limit: 50 }),
   ])
   if (stats && stats.total >= 0) total.value = stats.total
   releases.value = next
@@ -101,6 +158,10 @@ onMounted(async () => {
     notesHistory.value = [next.windows]
   } else {
     notesHistory.value = []
+  }
+  selectedVersion.value = notesHistory.value[0]?.version || ''
+  if (next.windows?.notesMd && next.windows.version) {
+    notesCache.value = { ...notesCache.value, [next.windows.version]: next.windows }
   }
   loadingRelease.value = false
 })
@@ -120,6 +181,21 @@ onMounted(async () => {
           <span class="site-stat__label">次累计下载（含应用内更新）</span>
         </p>
       </header>
+
+      <section class="download-faq" aria-labelledby="download-faq-title">
+        <div class="download-faq__head">
+          <div>
+            <h2 id="download-faq-title">安装遇到问题？</h2>
+            <p class="download-faq__lead">
+              当前 Windows 安装包尚未购买企业代码签名证书，SmartScreen 可能提示「未知发布者」。从本页下载并对照 SHA-256 校验后可继续安装。
+            </p>
+          </div>
+          <RsButton variant="secondary" radius="md" @click="router.push('/faq?category=install')">
+            查看全部帮助
+          </RsButton>
+        </div>
+        <FaqList :items="installFaq" open-id="windows-smartscreen" />
+      </section>
 
       <div class="download-grid">
         <article
@@ -155,18 +231,36 @@ onMounted(async () => {
       </div>
 
       <section class="download-notes" aria-labelledby="download-notes-title">
-        <h2 id="download-notes-title">更新说明</h2>
+        <h2 id="download-notes-title">更新日志</h2>
         <p v-if="loadingRelease" class="download-notes__muted">加载中…</p>
-        <template v-else-if="notesHistory.length">
-          <article v-for="rel in notesHistory" :key="rel.version" class="download-notes__ver">
-            <p class="download-notes__title">
+        <div v-else-if="notesHistory.length" class="download-notes__split">
+          <nav class="download-notes__nav" aria-label="版本列表">
+            <button
+              v-for="rel in notesHistory"
+              :key="rel.version"
+              type="button"
+              class="download-notes__item"
+              :class="{ 'is-active': selectedCard?.version === rel.version }"
+              @click="selectedVersion = rel.version"
+            >
               <span class="download-notes__ver-id">v{{ rel.version }}</span>
-              <template v-if="rel.title"> {{ rel.title }}</template>
+              <span class="download-notes__time">{{ formatReleaseDate(rel.publishedAt) || '—' }}</span>
+            </button>
+          </nav>
+          <article v-if="selectedRelease" class="download-notes__detail">
+            <p class="download-notes__title">
+              <span class="download-notes__ver-id">v{{ selectedRelease.version }}</span>
+              <template v-if="selectedRelease.title"> {{ selectedRelease.title }}</template>
             </p>
-            <pre v-if="rel.notesMd?.trim()" class="download-notes__body">{{ rel.notesMd.trim() }}</pre>
+            <p v-if="notesLoading && !selectedRelease.notesMd?.trim()" class="download-notes__muted">
+              加载说明中…
+            </p>
+            <pre v-else-if="selectedRelease.notesMd?.trim()" class="download-notes__body">{{
+              selectedRelease.notesMd.trim()
+            }}</pre>
             <p v-else class="download-notes__muted">本版本暂无详细说明。</p>
           </article>
-        </template>
+        </div>
         <p v-else class="download-notes__muted">
           暂无更新说明。
         </p>
@@ -176,6 +270,35 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.download-faq {
+  margin-bottom: 2.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.download-faq__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.download-faq h2 {
+  margin: 0 0 0.45rem;
+  font-family: var(--site-font-display);
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.download-faq__lead {
+  margin: 0;
+  max-width: 44rem;
+  color: var(--rs-muted);
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
 .download-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -267,9 +390,60 @@ onMounted(async () => {
   letter-spacing: -0.03em;
 }
 
-.download-notes__ver {
+.download-notes__split {
   display: grid;
-  gap: 0.5rem;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+  min-height: 22rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--rs-border) 90%, transparent);
+  background: color-mix(in srgb, #14171f 92%, transparent);
+  overflow: hidden;
+}
+
+.download-notes__nav {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border-right: 1px solid color-mix(in srgb, var(--rs-border) 90%, transparent);
+  max-height: 28rem;
+}
+
+.download-notes__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--rs-border) 55%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.download-notes__item:hover {
+  background: color-mix(in srgb, var(--site-aurora-a, #7aa2ff) 8%, transparent);
+}
+
+.download-notes__item.is-active {
+  background: color-mix(in srgb, var(--site-aurora-a, #7aa2ff) 16%, transparent);
+}
+
+.download-notes__time {
+  color: var(--rs-muted);
+  font-size: 0.8rem;
+}
+
+.download-notes__detail {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 1.1rem 1.2rem;
 }
 
 .download-notes__title {
@@ -284,22 +458,39 @@ onMounted(async () => {
 
 .download-notes__body {
   margin: 0;
-  padding: 1rem 1.15rem;
-  border-radius: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--rs-border) 90%, transparent);
-  background: color-mix(in srgb, #14171f 92%, transparent);
+  max-height: 22rem;
+  overflow: auto;
   white-space: pre-wrap;
   font-family: inherit;
   font-size: 0.92rem;
   line-height: 1.55;
   color: var(--rs-fg, #e8eaed);
-  max-height: 22rem;
-  overflow: auto;
 }
 
 .download-notes__muted {
   margin: 0;
   color: var(--rs-muted);
   font-size: 0.95rem;
+}
+
+@media (max-width: 800px) {
+  .download-notes__split {
+    grid-template-columns: 1fr;
+  }
+
+  .download-notes__nav {
+    flex-direction: row;
+    max-height: none;
+    overflow: auto;
+    border-right: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--rs-border) 90%, transparent);
+  }
+
+  .download-notes__item {
+    flex: 0 0 auto;
+    min-width: 7.5rem;
+    border-bottom: none;
+    border-right: 1px solid color-mix(in srgb, var(--rs-border) 55%, transparent);
+  }
 }
 </style>

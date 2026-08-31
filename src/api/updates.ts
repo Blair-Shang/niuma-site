@@ -9,6 +9,8 @@ export type UpdateRelease = {
   version: string
   title: string
   notesMd: string
+  notesExcerpt?: string
+  notesTruncated?: boolean
   downloadUrl: string
   sha256: string
   fileSize: number
@@ -52,13 +54,16 @@ export async function fetchLatestRelease(
   }
 }
 
-/** 已发布版本列表（semver 降序），供下载页更新说明。 */
+/** 已发布版本目录（无全文）。单条完整说明请用 fetchPublishedRelease。 */
 export async function fetchReleaseHistory(
-  params: FetchLatestParams & { limit?: number } = {},
+  params: FetchLatestParams & { limit?: number; offset?: number } = {},
 ): Promise<UpdateRelease[]> {
   const q = releaseQuery(params)
   if (params.limit && params.limit > 0) {
     q.set('limit', String(params.limit))
+  }
+  if (params.offset && params.offset > 0) {
+    q.set('offset', String(params.offset))
   }
   try {
     const url = cloudURL(`/api/v1/updates/releases?${q}`)
@@ -68,5 +73,21 @@ export async function fetchReleaseHistory(
     return Array.isArray(data.items) ? data.items : []
   } catch {
     return []
+  }
+}
+
+/** 某一已发布版本的完整说明。 */
+export async function fetchPublishedRelease(
+  params: FetchLatestParams & { version: string },
+): Promise<UpdateRelease | null> {
+  const q = releaseQuery(params)
+  q.set('version', params.version)
+  try {
+    const url = cloudURL(`/api/v1/updates/releases?${q}`)
+    const res = await fetch(url, { headers: { Accept: 'application/json' } })
+    if (!res.ok) return null
+    return (await res.json()) as UpdateRelease
+  } catch {
+    return null
   }
 }

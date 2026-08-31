@@ -8,6 +8,7 @@ const route = useRoute()
 const nav = [
   { label: '产品', to: '/products' },
   { label: '下载', to: '/download' },
+  { label: '帮助', to: '/faq' },
   { label: '反馈', to: '/feedback' },
   { label: '关于', to: '/about' },
 ] as const

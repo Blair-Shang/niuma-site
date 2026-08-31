@@ -65,7 +65,8 @@ async function lookup() {
         <p class="site-section__eyebrow">Support</p>
         <h1>问题反馈</h1>
         <p>
-          帮助我们改进 NiuMa。提交后请保存工单号，可在下方查询官方回复（桌面登录用户请在客户端「我的反馈」查看）。
+          帮助我们改进 NiuMa。提交前可先查阅
+          <RouterLink to="/faq">常见问题</RouterLink>；提交后请保存工单号，可在下方查询官方回复（桌面登录用户请在客户端「我的反馈」查看）。
         </p>
       </header>
 
@@ -212,6 +213,12 @@ async function lookup() {
   margin: 0;
   color: var(--rs-muted);
   font-size: 0.92rem;
+}
+
+.site-page-head :deep(a) {
+  color: color-mix(in srgb, var(--site-aurora-a) 80%, #fff);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .feedback-result {

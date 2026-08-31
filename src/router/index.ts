@@ -28,6 +28,16 @@ export const router = createRouter({
       meta: { title: '下载 — NiuMa' },
     },
     {
+      path: '/faq',
+      name: 'faq',
+      component: () => import('../pages/FaqPage.vue'),
+      meta: { title: '常见问题 — NiuMa' },
+    },
+    {
+      path: '/help',
+      redirect: '/faq',
+    },
+    {
       path: '/feedback',
       name: 'feedback',
       component: () => import('../pages/FeedbackPage.vue'),

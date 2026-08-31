@@ -17,6 +17,7 @@ const columns = [
   {
     title: '支持',
     links: [
+      { label: '常见问题', to: '/faq' },
       { label: '问题反馈', to: '/feedback' },
       { label: '关于', to: '/about' },
     ],
