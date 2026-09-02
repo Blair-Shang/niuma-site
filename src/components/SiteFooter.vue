@@ -55,14 +55,31 @@ const columns = [
     </div>
     <div class="site-container site-footer__bottom">
       <p class="site-footer__copy">© {{ year }} {{ siteConfig.name }}</p>
-      <a
-        class="site-footer__beian"
-        :href="siteConfig.icp.url"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {{ siteConfig.icp.number }}
-      </a>
+      <div class="site-footer__filings">
+        <a
+          class="site-footer__beian"
+          :href="siteConfig.icp.url"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ siteConfig.icp.number }}
+        </a>
+        <a
+          class="site-footer__beian site-footer__beian--mps"
+          :href="siteConfig.mps.url"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img
+            class="site-footer__mps-icon"
+            :src="siteConfig.mps.icon"
+            alt=""
+            width="18"
+            height="18"
+          />
+          {{ siteConfig.mps.number }}
+        </a>
+      </div>
     </div>
   </footer>
 </template>
@@ -156,8 +173,26 @@ const columns = [
   color: var(--rs-muted);
 }
 
+.site-footer__filings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.1rem;
+}
+
 .site-footer__beian {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   text-decoration: none;
+}
+
+.site-footer__mps-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .site-footer__beian:hover {

@@ -31,6 +31,14 @@ export const siteConfig = {
     number: '鄂ICP备2026041693号-1',
     url: 'https://beian.miit.gov.cn/',
   },
+  /**
+   * 公安联网备案号（页脚悬挂，链到网安备案查询）。审核已通过。
+   */
+  mps: {
+    number: '鄂公网安备42011602001323号',
+    url: 'https://beian.mps.gov.cn/#/query/webSearch?code=42011602001323',
+    icon: '/brand/备案图标.png',
+  },
 } as const
 
 export function apiUrl(path: string): string {
